@@ -1,7 +1,7 @@
 import React from "react";
 import Cart from "./Cart";
 import Navbar from "./Navbar";
-import {getFirestore, collection, getDocs}  from 'firebase/firestore'
+import {getFirestore, collection, getDocs, onSnapshot}  from 'firebase/firestore'
 import { initializeApp } from "firebase/app";
 
 class App extends React.Component {
@@ -63,19 +63,24 @@ totalCartPrice=()=>{
 
 
 componentDidMount(){
-    // firebase
-    // .firestore()
-    // .collection("products")
-    // .get().then((snapshot)=>{
-    //     console.log(snapshot)
-    // })
+
+    /* ---This is for older version of firebase---
+    firebase
+    .firestore()
+    .collection("products")
+    .get().then((snapshot)=>{
+        console.log(snapshot)
+    })
+    */
+
+   /* ________New Version Method_____
     const db = getFirestore();
     const colRef = collection(db, "products")
     getDocs(colRef).then((snapshot)=>{
 
-        snapshot.docs.forEach((doc)=>{
-            console.log(doc.data())
-        })
+        // snapshot.docs.forEach((doc)=>{
+        //     console.log(doc.data())
+        // })
 
         const products =snapshot.docs.map((doc)=>{
             const data= doc.data();
@@ -92,7 +97,30 @@ componentDidMount(){
     }).catch(err=>{
         console.log(err.message)
     })
+    */
 
+    //________adding handler for real time data collection__
+    const db = getFirestore();
+    const collRef = collection(db, "products")
+    onSnapshot(collRef,(snapshot)=>{
+        
+        snapshot.docs.forEach((doc)=>{
+            console.log(doc.data())
+        })
+        const products =snapshot.docs.map((doc)=>{
+            const data= doc.data();
+            data['id']=doc.id;
+
+            return data
+        })
+
+        this.setState({
+            products,
+            loading:false
+            
+        })
+    })
+    
 }
 
   render(){
