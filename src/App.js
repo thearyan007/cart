@@ -1,7 +1,7 @@
 import React from "react";
 import Cart from "./Cart";
 import Navbar from "./Navbar";
-import {getFirestore, collection, getDocs, onSnapshot}  from 'firebase/firestore'
+import {getFirestore, collection, getDocs, addDoc, onSnapshot}  from 'firebase/firestore'
 import { initializeApp } from "firebase/app";
 
 class App extends React.Component {
@@ -10,7 +10,9 @@ class App extends React.Component {
     this.state={
         products:[],
         loading:true
-    }
+    };
+    const db = getFirestore();
+    this.collRef = collection(db, "products")
     
 }
 handleIncreaseQty=(product)=>{
@@ -64,16 +66,8 @@ totalCartPrice=()=>{
 
 componentDidMount(){
 
-    /* ---This is for older version of firebase---
-    firebase
-    .firestore()
-    .collection("products")
-    .get().then((snapshot)=>{
-        console.log(snapshot)
-    })
-    */
 
-   /* ________New Version Method_____
+   /* ________New Version Method for getting the data from firebase_____
     const db = getFirestore();
     const colRef = collection(db, "products")
     getDocs(colRef).then((snapshot)=>{
@@ -100,10 +94,11 @@ componentDidMount(){
     */
 
     //________adding handler for real time data collection__
+    /*    added in the constructor
     const db = getFirestore();
-    const collRef = collection(db, "products")
-    onSnapshot(collRef,(snapshot)=>{
-        
+    const collRef = collection(db, "products")*/
+    onSnapshot(this.collRef,(snapshot)=>{
+
         snapshot.docs.forEach((doc)=>{
             console.log(doc.data())
         })
@@ -121,7 +116,20 @@ componentDidMount(){
         })
     })
     
+    
 }
+    addProduct=()=>{
+        addDoc(this.collRef,{
+            title:"Tablet",
+            Qty:1,
+            price:10999,
+            img:""
+        }).then((docRef)=>{
+            console.log(docRef)
+        }).catch((err)=>{
+            console.log(err.message)
+        })
+    }
 
   render(){
     const {products, loading} = this.state;
@@ -129,6 +137,7 @@ componentDidMount(){
       <div className="App">
         {/* <h1>Cart</h1> */}
         <Navbar count={this.getCartCount()}/>
+        <button onClick={this.addProduct} style={{padding:15, fontSize:20}}>Add product</button>
         <Cart 
           products={products} 
           onIncreaseQuantity={this.handleIncreaseQty} 
